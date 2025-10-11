@@ -15,10 +15,10 @@ import ResponsiveGrid from '../components/ResponsiveGrid';
 import StatisticWidget from '../components/widgets/StatisticWidget';
 import BaseWidget from '../components/widgets/BaseWidget';
 import { theme } from '../styles/theme';
-import { isTablet, listenForOrientationChange } from '../utils/responsive';
+import { isTablet, listenForOrientationChange, getOrientation } from '../utils/responsive';
 const DashboardScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [orientation, setOrientation] = useState('portrait');
+  const [orientation, setOrientation] = useState(getOrientation());
   // Sample dashboard data
   const [dashboardData, setDashboardData] = useState({
     statistics: [
@@ -66,14 +66,10 @@ const DashboardScreen = () => {
   });
   useEffect(() => {
     // Listen for orientation changes
-    const subscription = listenForOrientationChange(() => {
-      setOrientation(prev => (prev === 'portrait' ? 'landscape' : 'portrait'));
+    const subscription = listenForOrientationChange(newScreenData => {
+      setOrientation(newScreenData.orientation);
     });
-    // Initial orientation
-    // eslint-disable-next-line no-shadow
-    Orientation.getOrientation(orientation => {
-      setOrientation(orientation);
-    });
+
     return () => {
       subscription?.remove();
     };
@@ -104,6 +100,46 @@ const DashboardScreen = () => {
       onPress={() => Alert.alert(item.title, `Detailed view for ${item.title}`)}
     />
   );
+
+  const quickActionsData = [
+    {
+      title: 'Add Product',
+      icon: 'add-box',
+      color: theme.colors.primary.main,
+    },
+    {
+      title: 'View Reports',
+      icon: 'assessment',
+      color: theme.colors.secondary.main,
+    },
+    {
+      title: 'Manage Users',
+      icon: 'group',
+      color: theme.colors.accent.main,
+    },
+    {
+      title: 'Settings',
+      icon: 'settings',
+      color: theme.colors.neutral.gray600,
+    },
+  ];
+
+  const renderQuickActionItem = (item, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.quickAction}
+      onPress={() => Alert.alert(item.title, `${item.title} pressed`)}>
+      <View
+        style={[
+          styles.quickActionIcon,
+          { backgroundColor: `${item.color}20` },
+        ]}>
+        <Icon name={item.icon} size={24} color={item.color} />
+      </View>
+      <Text style={styles.quickActionText}>{item.title}</Text>
+    </TouchableOpacity>
+  );
+
   const isTab = isTablet();
   const isLandscape = orientation === 'landscape';
   return (
@@ -128,8 +164,7 @@ const DashboardScreen = () => {
             colors={[theme.colors.primary.main]}
             tintColor={theme.colors.primary.main}
           />
-        }
-      >
+        }>
         {/* Statistics Grid */}
         <ResponsiveGrid
           data={dashboardData.statistics}
@@ -143,50 +178,12 @@ const DashboardScreen = () => {
           <BaseWidget
             title="Quick Actions"
             icon="flash-on"
-            iconColor={theme.colors.semantic.warning}
-          >
-            <View style={styles.quickActions}>
-              {[
-                {
-                  title: 'Add Product',
-                  icon: 'add-box',
-                  color: theme.colors.primary.main,
-                },
-                {
-                  title: 'View Reports',
-                  icon: 'assessment',
-                  color: theme.colors.secondary.main,
-                },
-                {
-                  title: 'Manage Users',
-                  icon: 'group',
-                  color: theme.colors.accent.main,
-                },
-                {
-                  title: 'Settings',
-                  icon: 'settings',
-                  color: theme.colors.neutral.gray600,
-                },
-              ].map((action, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.quickAction}
-                  onPress={() =>
-                    Alert.alert(action.title, `${action.title} pressed`)
-                  }
-                >
-                  <View
-                    style={[
-                      styles.quickActionIcon,
-                      { backgroundColor: `${action.color}20` },
-                    ]}
-                  >
-                    <Icon name={action.icon} size={24} color={action.color} />
-                  </View>
-                  <Text style={styles.quickActionText}>{action.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            iconColor={theme.colors.semantic.warning}>
+            <ResponsiveGrid
+              data={quickActionsData}
+              renderItem={renderQuickActionItem}
+              numColumns={4}
+            />
           </BaseWidget>
         </View>
       </ScrollView>
@@ -207,14 +204,8 @@ const styles = StyleSheet.create({
   widgetsContainer: {
     paddingHorizontal: theme.spacing.md,
   },
-  quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
   quickAction: {
     alignItems: 'center',
-    width: '22%',
     paddingVertical: theme.spacing.md,
   },
   quickActionIcon: {

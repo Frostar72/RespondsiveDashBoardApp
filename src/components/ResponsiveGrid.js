@@ -14,20 +14,11 @@ const ResponsiveGrid = ({
   spacing = theme.spacing.sm,
   contentContainerStyle,
 }) => {
-  const [columns, setColumns] = useState(numColumns || getGridColumns());
-  useEffect(() => {
-    // Listen for orientation changes
-    const subscription = listenForOrientationChange(() => {
-      setColumns(numColumns || getGridColumns());
-    });
-    return () => subscription?.remove();
-  }, [numColumns]);
   const renderRow = (rowData, rowIndex) => {
     return (
       <View
         key={rowIndex}
-        style={[styles.row, { marginHorizontal: -spacing / 2 }]}
-      >
+        style={[styles.row, { gap: spacing, marginBottom: spacing }]}>
         {rowData.map((item, itemIndex) => {
           if (!item) {
             // Empty placeholder for incomplete rows
@@ -36,15 +27,7 @@ const ResponsiveGrid = ({
           return (
             <View
               key={item.id || itemIndex}
-              style={[
-                styles.item,
-                {
-                  flex: 1,
-                  marginHorizontal: spacing / 2,
-                  marginBottom: spacing,
-                },
-              ]}
-            >
+              style={[styles.item, { flex: 1 }]}>
               {renderItem(item, itemIndex)}
             </View>
           );
@@ -54,10 +37,10 @@ const ResponsiveGrid = ({
   };
   // Group data into rows
   const groupedData = [];
-  for (let i = 0; i < data.length; i += columns) {
-    const row = data.slice(i, i + columns);
+  for (let i = 0; i < data.length; i += numColumns) {
+    const row = data.slice(i, i + numColumns);
     // Fill incomplete rows with null
-    while (row.length < columns) {
+    while (row.length < numColumns) {
       row.push(null);
     }
     groupedData.push(row);
@@ -74,7 +57,8 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    marginBottom: theme.spacing.sm,
   },
   item: {
     // Base item styles

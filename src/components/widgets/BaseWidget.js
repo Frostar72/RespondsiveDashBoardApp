@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
   container: {
     ...theme.card,
     marginBottom: theme.spacing.md,
+    flex: 1,
   },
   tabletContainer: {
     padding: theme.spacing.lg,

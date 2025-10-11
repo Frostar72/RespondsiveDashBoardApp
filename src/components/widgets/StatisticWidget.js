@@ -57,6 +57,8 @@ const StatisticWidget = ({
 const styles = StyleSheet.create({
   statisticContainer: {
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   value: {
     fontSize: theme.typography.h1,
