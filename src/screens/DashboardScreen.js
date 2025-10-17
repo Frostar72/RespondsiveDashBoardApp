@@ -15,10 +15,17 @@ import ResponsiveGrid from '../components/ResponsiveGrid';
 import StatisticWidget from '../components/widgets/StatisticWidget';
 import BaseWidget from '../components/widgets/BaseWidget';
 import { theme } from '../styles/theme';
-import { isTablet, listenForOrientationChange, getOrientation } from '../utils/responsive';
+import {
+  isTablet,
+  listenForOrientationChange,
+  getOrientation,
+  getGridColumns,
+} from '../utils/responsive';
+
 const DashboardScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [orientation, setOrientation] = useState(getOrientation());
+
   // Sample dashboard data
   const [dashboardData, setDashboardData] = useState({
     statistics: [
@@ -64,6 +71,7 @@ const DashboardScreen = () => {
       },
     ],
   });
+
   useEffect(() => {
     // Listen for orientation changes
     const subscription = listenForOrientationChange(newScreenData => {
@@ -74,6 +82,7 @@ const DashboardScreen = () => {
       subscription?.remove();
     };
   }, []);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     // Simulate data refresh
@@ -88,6 +97,7 @@ const DashboardScreen = () => {
       setRefreshing(false);
     }, 2000);
   };
+
   const renderStatisticWidget = item => (
     <StatisticWidget
       title={item.title}
@@ -128,12 +138,11 @@ const DashboardScreen = () => {
     <TouchableOpacity
       key={index}
       style={styles.quickAction}
-      onPress={() => Alert.alert(item.title, `${item.title} pressed`)}>
+      onPress={() => Alert.alert(item.title, `${item.title} pressed`)}
+    >
       <View
-        style={[
-          styles.quickActionIcon,
-          { backgroundColor: `${item.color}20` },
-        ]}>
+        style={[styles.quickActionIcon, { backgroundColor: `${item.color}20` }]}
+      >
         <Icon name={item.icon} size={24} color={item.color} />
       </View>
       <Text style={styles.quickActionText}>{item.title}</Text>
@@ -142,6 +151,16 @@ const DashboardScreen = () => {
 
   const isTab = isTablet();
   const isLandscape = orientation === 'landscape';
+
+  // Get the number of columns for statistics grid
+  const getStatsColumns = () => {
+    if (isTab) {
+      return isLandscape ? 4 : 2; // Tablet: 4 in landscape, 2 in portrait
+    } else {
+      return 2; // Phone: Always 2 columns in both portrait and landscape
+    }
+  };
+
   return (
     <View style={styles.container}>
       <DashboardHeader
@@ -164,21 +183,22 @@ const DashboardScreen = () => {
             colors={[theme.colors.primary.main]}
             tintColor={theme.colors.primary.main}
           />
-        }>
-        {/* Statistics Grid */}
+        }
+      >
+        {/* Statistics Grid - FIXED: Always 2 columns for phones */}
         <ResponsiveGrid
           data={dashboardData.statistics}
           renderItem={renderStatisticWidget}
-          numColumns={
-            isLandscape && isTab ? 4 : isLandscape ? 2 : isTab ? 2 : 1
-          }
+          numColumns={getStatsColumns()}
         />
+
         {/* Quick Actions Widget */}
         <View style={styles.widgetsContainer}>
           <BaseWidget
             title="Quick Actions"
             icon="flash-on"
-            iconColor={theme.colors.semantic.warning}>
+            iconColor={theme.colors.semantic.warning}
+          >
             <ResponsiveGrid
               data={quickActionsData}
               renderItem={renderQuickActionItem}
@@ -190,6 +210,7 @@ const DashboardScreen = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -223,4 +244,5 @@ const styles = StyleSheet.create({
     color: theme.colors.neutral.gray700,
   },
 });
+
 export default DashboardScreen;

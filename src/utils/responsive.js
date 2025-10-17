@@ -70,7 +70,7 @@ export const getGridColumns = () => {
     // Phone
     switch (deviceType) {
       case 'small':
-        return orientation === 'portrait' ? 1 : 2;
+        return orientation === 'portrait' ? 2 : 2;
       case 'medium':
         return orientation === 'portrait' ? 2 : 3;
       case 'large':
